@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Blueprint, Flask
 from flask_cors import CORS
+from app.controllers.health_check_controller import health_checking
 from app.models.database import db
 from app.models import model
 import app.config as config
@@ -20,5 +21,11 @@ db.init_app(app)
 with app.app_context():
     model.create_all_tables()
 
+# API Blueprint
+health_api_blueprint = Blueprint('health_api', __name__)    
+health_checking(health_api_blueprint)
+
+app.register_blueprint(health_api_blueprint)
+
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=8000, debug=True)
+    app.run(host="127.0.0.1", port=8080, debug=True)

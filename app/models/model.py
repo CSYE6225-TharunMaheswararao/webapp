@@ -4,7 +4,7 @@ from datetime import datetime
 class HealthCheck(db.Model):
     __tablename__ = 'health_check'
     id = db.Column(db.Integer, primary_key=True, auto_increment=True)
-    datetime = db.Column(db.DateTime, default=datetime.utcnow)
+    datetime = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now())
 
 ##### HELPER METHODS ######
 def create_all_tables():
