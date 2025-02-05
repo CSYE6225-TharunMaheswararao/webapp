@@ -1,8 +1,5 @@
-from flask import make_response
 import requests
-from unittest.mock import patch
 import pytest
-from app.services.health_check_service import insert_health_check
 
 BASE_URL = "http://127.0.0.1:8080"
 
