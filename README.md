@@ -52,3 +52,10 @@ Health Check Response
 ✅ 200 OK → Application is healthy.
 ❌ 400 Bad Request → GET request contains a payload.
 ⚠️ 503 Service Unavailable → Database operation failed.
+
+### **🧪 Running Tests
+This project includes automated tests using pytest.
+
+```bash
+pytest -v app/tests/test_api.py
+```

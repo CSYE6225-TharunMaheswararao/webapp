@@ -5,15 +5,16 @@ def health_checking(bp):
     @bp.route('/healthz', methods=['GET'])
     def health_check():
         # Disallow payloads in GET requests
-        if request.data:
+        # Check if there are query parameters or body data
+        if request.args or (request.data and request.data.strip()):  # Handles cases like /healthz?param=value
             response = make_response('', 400)  # Bad Request
             response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             response.headers['Pragma'] = 'no-cache'
             response.headers['X-Content-Type-Options'] = 'nosniff'
             return response
-        
+         
         # Attempt to insert a health check record
-        if insert_health_check():
+        if insert_health_check():  # Call from the service module
             response = make_response('', 200)  # OK
         else:
             response = make_response('', 503)  # Service Unavailable
