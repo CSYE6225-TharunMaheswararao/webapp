@@ -7,10 +7,10 @@ DB_PASSWORD="root"
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
 APP_DIR="/opt/csye6225"
-ZIP_FILE="Tharun_Maheswararao_002310838_01.zip"
-CONFIG_FILE="${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp/app/app.config"
-VENV_DIR="${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp/venv"
-RUN_SCRIPT="${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp/run.py"
+ZIP_FILE="Tharun_Maheswararao_002310838_02.zip"
+CONFIG_FILE="${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp/app/app.config"
+VENV_DIR="${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp/venv"
+RUN_SCRIPT="${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp/run.py"
 FLASK_SERVICE="flask_api"
 
 # Ensure we are using Bash
@@ -54,7 +54,7 @@ sudo unzip -o ${ZIP_FILE} -d ${APP_DIR}
 
 # Step 8: Update `app.config` with database details
 if [ ! -s "$CONFIG_FILE" ]; then
-    echo "⚠️ app.config is empty. Writing default configuration..."
+    echo "app.config is empty. Writing default configuration..."
     sudo bash -c "cat > $CONFIG_FILE <<EOF
 [DATABASE]
 DB_CONNECTION=mysql
@@ -82,7 +82,7 @@ python3 -m venv ${VENV_DIR}
 echo "Activating virtual environment and installing dependencies..."
 . ${VENV_DIR}/bin/activate
 pip install --upgrade pip
-pip install -r ${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp/requirements.txt
+pip install -r ${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp/requirements.txt
 
 # Step 12: Deactivate `venv` (Safely)
 deactivate || echo "Virtual environment deactivated."
@@ -107,11 +107,11 @@ After=network.target
 [Service]
 User=$(whoami)
 Group=$(whoami)
-WorkingDirectory=${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp
+WorkingDirectory=${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp
 ExecStart=${VENV_DIR}/bin/python3 run.py
 Restart=always
 Environment="FLASK_APP=${RUN_SCRIPT}"
-Environment="PYTHONPATH=${APP_DIR}/Tharun_Maheswararao_002310838_01/webapp"
+Environment="PYTHONPATH=${APP_DIR}/Tharun_Maheswararao_002310838_02/webapp"
 Environment="DB_CONNECTION=mysql"
 Environment="DB_HOST=${DB_HOST}"
 Environment="DB_PORT=${DB_PORT}"
