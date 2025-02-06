@@ -59,3 +59,13 @@ This project includes automated tests using pytest.
 ```bash
 pytest -v app/tests/test_api.py
 ```
+
+### ** Running Shell Script
+
+```bash
+ssh -i ~/.ssh/do root@[ip_address]
+scp -i ~/.ssh/do Tharun_Maheswararao_002310838_02.zip root@[ip_address]:/tmp
+scp -i setup.sh root@[ip_address]:/tmp
+cd /tmp
+sudo bash setup.sh [db_user] [db_password]
+```
