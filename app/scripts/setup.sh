@@ -2,8 +2,8 @@
 
 # Variables
 DB_NAME="healthify"
-DB_USER="root"
-DB_PASSWORD="root"
+DB_USER=$1
+DB_PASSWORD=$2
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
 APP_DIR="/opt/csye6225"
