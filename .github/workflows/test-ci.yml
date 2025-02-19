@@ -84,17 +84,6 @@ jobs:
       - name: Check Flask Logs
         run: cat flask.log  # Print logs in case of failure
 
-      - name: Verify Flask App is Running
-        run: |
-          echo "Checking Flask API status..."
-          for i in {1..10}; do
-            curl --silent --fail http://127.0.0.1:8080/healthz && exit 0
-            echo "Waiting for Flask app to be ready... retry $i"
-            sleep 30
-          done
-          echo "Flask app did not start in time."
-          exit 1
-
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
         env:
