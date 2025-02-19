@@ -1,28 +1,94 @@
-name: Web App CI
+name: Python CI - MySQL
 
 on:
   pull_request:
     branches:
-      - main  # Runs tests on PRs to main branch
+      - main  # Runs CI on PRs targeting main
 
 jobs:
   test:
-    name: Run Web App Tests
+    name: Run Python Tests
     runs-on: ubuntu-latest
+
+    env:
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USERNAME: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_HOST: localhost
+      DB_PORT: 3306
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set Up Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"  # Adjust Python version as needed
+          python-version: "3.9"  # Change if needed
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests pytest  # Install dependencies for tests
+          pip install -r requirements.txt
+
+      - name: Start MySQL Container
+        run: |
+          docker run -d --name mysql_container \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -p 3306:3306 \
+            --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }}" \
+            --health-interval=5s \
+            --health-timeout=3s \
+            --health-retries=5 \
+            mysql:8.0
+
+      - name: Wait for MySQL to be Ready
+        run: |
+          for i in {1..10}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' mysql_container 2>/dev/null || echo "not found")
+            if [ "$STATUS" == "healthy" ]; then
+              echo "MySQL is healthy!"
+              exit 0
+            fi
+            echo "Waiting for MySQL to be ready... retry $i"
+            sleep 5
+          done
+          echo "MySQL did not become healthy in time."
+          docker logs mysql_container
+          exit 1
+
+      - name: Create Database and User
+        run: |
+          docker exec mysql_container mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "
+            CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
+            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+            GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
+            FLUSH PRIVILEGES;
+          "
+
+      - name: Configure Environment Variables in `app.config`
+        run: |
+          echo "DB_USER = '${{ secrets.DB_USER }}'" > app.config
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app.config
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app.config
+          echo "DB_HOST = 'localhost'" >> app.config
+          echo "DB_PORT = 3306" >> app.config
+
+      - name: Debug MySQL Connection
+        run: |
+          echo "Checking MySQL Connection..."
+          mysql -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
 
       - name: Run Tests
-        run: pytest -v app/tests/test_api.py  # Run application tests
+        run: pytest -v app/tests/test_api.py
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: localhost
+          DB_PORT: 3306
+
+      - name: Stop MySQL Container
+        run: |
+          docker stop mysql_container || true
+          docker rm mysql_container || true
