@@ -74,16 +74,16 @@ jobs:
           echo "DB_HOST = 'localhost'" >> app/config.py
           echo "DB_PORT = 3306" >> app/config.py
 
-      - name: **Start Flask App (Debug Mode)**
+      - name: Start Flask App (Debug Mode)
         run: |
           echo "Starting Flask App..."
           nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
           sleep 10  # Give it time to start
 
-      - name: **Check Flask Logs**
+      - name: Check Flask Logs
         run: cat flask.log  # Print logs in case of failure
 
-      - name: **Verify Flask App is Running**
+      - name: Verify Flask App is Running
         run: |
           echo "Checking Flask API status..."
           for i in {1..10}; do
@@ -94,7 +94,7 @@ jobs:
           echo "Flask app did not start in time."
           exit 1
 
-      - name: **Run Tests**
+      - name: Run Tests
         run: pytest -v app/tests/test_api.py
         env:
           DB_NAME: ${{ secrets.DB_NAME }}
