@@ -68,21 +68,28 @@ jobs:
 
       - name: Configure Environment Variables in `app.config`
         run: |
-          echo "DB_USER = '${{ secrets.DB_USER }}'" > app.config
-          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app.config
-          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app.config
-          echo "DB_HOST = 'localhost'" >> app.config
-          echo "DB_PORT = 3306" >> app.config
+          echo "DB_USER = '${{ secrets.DB_USER }}'" > app/config.py
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/config.py
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/config.py
+          echo "DB_HOST = 'localhost'" >> app/config.py
+          echo "DB_PORT = 3306" >> app/config.py
 
-      - name: Debug MySQL Connection
+      - name: Start the Flask Application (Background)
         run: |
-          echo "Checking MySQL Connection..."
-          mysql -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
+          echo "Starting Flask App..."
+          python run.py &  # Start Flask app in the background
+          sleep 10  # Give it time to start
 
-      - name: Start the Application
+      - name: Verify Flask App is Running
         run: |
-          python run.py &  # Run the app in the background
-          sleep 10  # Give some time for the app to start
+          echo "Checking Flask API status..."
+          for i in {1..10}; do
+            curl --silent --fail http://127.0.0.1:8080/healthz && exit 0
+            echo "Waiting for Flask app to be ready... retry $i"
+            sleep 5
+          done
+          echo "Flask app did not start in time."
+          exit 1  # Fail the workflow if the app is not running
 
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
