@@ -68,11 +68,12 @@ jobs:
 
       - name: Configure Environment Variables in `app.config`
         run: |
-          echo "DB_USER = '${{ secrets.DB_USER }}'" > app/config.py
-          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/config.py
-          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/config.py
-          echo "DB_HOST = 'localhost'" >> app/config.py
-          echo "DB_PORT = 3306" >> app/config.py
+          echo "[DATABASE]" > app.config
+          echo "DB_USER = '${{ secrets.DB_USER }}'" >> app.config
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app.config
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app.config
+          echo "DB_HOST = 'localhost'" >> app.config
+          echo "DB_PORT = 3306" >> app.config
 
       - name: Start Flask App (Debug Mode)
         run: |
@@ -89,7 +90,7 @@ jobs:
           for i in {1..10}; do
             curl --silent --fail http://127.0.0.1:8080/healthz && exit 0
             echo "Waiting for Flask app to be ready... retry $i"
-            sleep 5
+            sleep 30
           done
           echo "Flask app did not start in time."
           exit 1
