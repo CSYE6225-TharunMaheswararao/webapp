@@ -25,4 +25,4 @@ jobs:
           pip install requests pytest  # Install dependencies for tests
 
       - name: Run Tests
-        run: pytest -v test_api.py  # Run application tests
+        run: pytest -v app/tests/test_api.py  # Run application tests
