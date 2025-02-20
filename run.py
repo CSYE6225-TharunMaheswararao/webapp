@@ -3,13 +3,13 @@ from flask_cors import CORS
 from app.controllers.health_check_controller import health_checking
 from app.models.database import db
 from app.models import model
-import app.config as config
+from app.config import get_db_uri
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 # DATABASE CONFIGURATIONS
-db_uri = config.get_db_uri()
+db_uri = get_db_uri()
 
 # FLASK APP CONFIGURATIONS
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri

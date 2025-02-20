@@ -14,7 +14,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USERNAME: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: localhost
+      DB_HOST: 127.0.0.1
       DB_PORT: 3306
 
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"  # Change if needed
+          python-version: "3.9"
 
       - name: Install Dependencies
         run: |
@@ -66,18 +66,24 @@ jobs:
             FLUSH PRIVILEGES;
           "
 
-      - name: Configure Environment Variables in `app.config`
+      - name: Configure Environment Variables in `app/app.config`
         run: |
-          echo "DB_USER = '${{ secrets.DB_USER }}'" > app.config
-          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app.config
-          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app.config
-          echo "DB_HOST = 'localhost'" >> app.config
-          echo "DB_PORT = 3306" >> app.config
+          echo "[DATABASE]" > app/app.config
+          echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
+          echo "DB_HOST = 127.0.0.1" >> app/app.config
+          echo "DB_PORT = 3306" >> app/app.config
+          echo "DB_CONNECTION = mysql" >> app/app.config
 
-      - name: Debug MySQL Connection
+      - name: Start Flask App (Debug Mode)
         run: |
-          echo "Checking MySQL Connection..."
-          mysql -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }} -e "SHOW DATABASES;"
+          echo "Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
+          sleep 10  # Give it time to start
+
+      - name: Check Flask Logs
+        run: cat flask.log  # Print logs in case of failure
 
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
@@ -85,7 +91,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
 
       - name: Stop MySQL Container

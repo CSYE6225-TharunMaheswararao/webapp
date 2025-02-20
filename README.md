@@ -69,3 +69,5 @@ scp -i setup.sh root@[ip_address]:/tmp
 cd /tmp
 sudo bash setup.sh [db_user] [db_password]
 ```
+
+Testing CI
