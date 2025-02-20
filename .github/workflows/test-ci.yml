@@ -69,11 +69,12 @@ jobs:
       - name: Configure Environment Variables in `app/app.config`
         run: |
           echo "[DATABASE]" > app/app.config
-          echo "DB_USER = '${{ secrets.DB_USER }}'" >> app/app.config
+          echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
           echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
           echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
           echo "DB_HOST = 127.0.0.1" >> app/app.config
           echo "DB_PORT = 3306" >> app/app.config
+          echo "DB_CONNECTION" = mysql" >> app/app.config
 
       - name: Start Flask App (Debug Mode)
         run: |
