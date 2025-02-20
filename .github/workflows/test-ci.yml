@@ -14,7 +14,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USERNAME: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: localhost
+      DB_HOST: 127.0.0.1
       DB_PORT: 3306
 
     steps:
@@ -66,14 +66,14 @@ jobs:
             FLUSH PRIVILEGES;
           "
 
-      - name: Configure Environment Variables in `app.config`
+      - name: Configure Environment Variables in `app/app.config`
         run: |
-          echo "[DATABASE]" > app.config
-          echo "DB_USER = '${{ secrets.DB_USER }}'" >> app.config
-          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app.config
-          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app.config
-          echo "DB_HOST = 'localhost'" >> app.config
-          echo "DB_PORT = 3306" >> app.config
+          echo "[DATABASE]" > app/app.config
+          echo "DB_USER = '${{ secrets.DB_USER }}'" >> app/app.config
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
+          echo "DB_HOST = 127.0.0.1" >> app/app.config
+          echo "DB_PORT = 3306" >> app/app.config
 
       - name: Start Flask App (Debug Mode)
         run: |
@@ -90,7 +90,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
 
       - name: Stop MySQL Container
