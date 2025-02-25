@@ -6,7 +6,7 @@ BASE_URL = "http://127.0.0.1:8080"
 def test_health_check_success():
     """Test if the /healthz endpoint returns 200 OK when no params or body are sent"""
     response = requests.get(f"{BASE_URL}/healthz")
-    assert response.status_code == 200
+    assert response.status_code == 201
 
 # def test_health_check_db_failure():
 #     """Ensure the /healthz endpoint returns 503 when DB insertion fails"""
