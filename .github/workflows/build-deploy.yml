@@ -49,14 +49,18 @@ jobs:
           docker logs mysql_container
           exit 1
 
-      - name: Create Database and User
+      - name: Wait for MySQL to Accept Connections
         run: |
-          docker exec mysql_container mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "
-            CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
-            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
-            GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
-            FLUSH PRIVILEGES;
-          "
+          for i in {1..10}; do
+            if docker exec mysql_container mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }} --silent; then
+              echo "✅ MySQL is accessible!"
+              exit 0
+            fi
+            echo "⏳ Waiting for MySQL to accept connections... retry $i"
+            sleep 5
+          done
+          echo "❌ MySQL did not accept connections in time."
+          exit 1
 
       - name: Configure Environment Variables in `app/app.config`
         run: |
@@ -64,26 +68,25 @@ jobs:
           echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
           echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
           echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
-          echo "DB_HOST = 127.0.0.1" >> app/app.config
+          echo "DB_HOST = 'host.docker.internal'" >> app/app.config  # ✅ Use host.docker.internal
           echo "DB_PORT = 3306" >> app/app.config
           echo "DB_CONNECTION = mysql" >> app/app.config
 
       - name: Start Flask App (Debug Mode)
         run: |
-          echo "Starting Flask App..."
-          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
-          sleep 10  # Give it time to start
+          echo "🚀 Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &
+          sleep 10  # Wait for Flask to initialize
+          echo "🔍 Checking Flask logs..."
+          cat flask.log
 
-      - name: Check Flask Logs
-        run: cat flask.log  # Print logs in case of failure
-  
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
         env:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: 127.0.0.1
+          DB_HOST: host.docker.internal
           DB_PORT: 3306
 
       - name: Stop Services
@@ -106,7 +109,7 @@ jobs:
           zip -r artifacts/webapp.zip app run.py requirements.txt
 
       - name: Upload Application Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: webapp-artifact
           path: artifacts/webapp.zip
@@ -123,7 +126,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Application Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.3.1
         with:
           name: webapp-artifact
           path: /tmp
