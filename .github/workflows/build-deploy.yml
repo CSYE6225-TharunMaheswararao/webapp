@@ -144,9 +144,10 @@ jobs:
           wget https://releases.hashicorp.com/packer/1.10.1/packer_1.10.1_linux_amd64.zip
           unzip packer_1.10.1_linux_amd64.zip
           sudo mv packer /usr/local/bin/
-          - name: Install Packer Plugins
-          run: |
-            packer plugins install github.com/hashicorp/amazon
+          
+      - name: Install Packer Plugins
+        run: |
+          packer plugins install github.com/hashicorp/amazon
   
       - name: Run Packer Format Check
         run: |
