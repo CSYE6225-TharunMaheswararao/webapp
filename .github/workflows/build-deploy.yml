@@ -63,11 +63,7 @@ jobs:
             GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
             FLUSH PRIVILEGES;
           "
-      - name: Create Dummy `webapp.zip`
-        run: |
-          zip -r webapp.zip ./
-          ls -al
-          
+
       - name: Configure Environment Variables in `app/app.config`
         run: |
           echo "[DATABASE]" > app/app.config
@@ -144,8 +140,12 @@ jobs:
           ls -lh /tmp/
           if [ ! -f "/tmp/webapp.zip" ]; then
             echo "❌ ERROR: webapp.zip is missing!"
-            exit 1
+            zip -r webapp.zip ./
+            ls  -al
+          else
+            echo "✅ webapp.zip found!"
           fi
+          ls -al
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
