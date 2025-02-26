@@ -22,6 +22,10 @@ jobs:
         run: |
           packer fmt -check -diff aws-packer.pkr.hcl
 
+      - name: Run Packer init
+        run: |
+          packer init aws-packer.pkr.hcl
+
       - name: Run Packer Validate
         run: |
           packer validate aws-packer.pkr.hcl
