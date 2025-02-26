@@ -144,6 +144,21 @@ jobs:
           wget https://releases.hashicorp.com/packer/1.10.1/packer_1.10.1_linux_amd64.zip
           unzip packer_1.10.1_linux_amd64.zip
           sudo mv packer /usr/local/bin/
+          - name: Install Packer Plugins
+          run: |
+            packer plugins install github.com/hashicorp/amazon
+  
+      - name: Run Packer Format Check
+        run: |
+          packer fmt -check -diff aws-packer.pkr.hcl
+
+      - name: Run Packer init
+        run: |
+          packer init aws-packer.pkr.hcl
+
+      - name: Run Packer Validate
+        run: |
+          packer validate aws-packer.pkr.hcl
 
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
