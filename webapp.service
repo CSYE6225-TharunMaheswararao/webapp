@@ -1,0 +1,12 @@
+[Unit]
+Description=WebApp Service
+After=network.target
+
+[Service]
+User=csye6225
+WorkingDirectory=/opt/webapp
+ExecStart=/usr/bin/python3 /opt/webapp/run.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,70 @@
+name: Integration Test & Build Packer Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests..."
+          pytest tests/
+
+  build-artifact:
+    runs-on: ubuntu-latest
+    needs: integration-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Application Artifact
+        run: |
+          mkdir -p artifacts
+          zip -r artifacts/webapp.zip app run.py requirements.txt
+
+      - name: Upload Application Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: webapp-artifact
+          path: artifacts/webapp.zip
+
+  build-packer-image:
+    runs-on: ubuntu-latest
+    needs: build-artifact
+    env:
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download Application Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: webapp-artifact
+          path: /tmp
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install Packer
+        run: |
+          wget https://releases.hashicorp.com/packer/1.10.1/packer_1.10.1_linux_amd64.zip
+          unzip packer_1.10.1_linux_amd64.zip
+          sudo mv packer /usr/local/bin/
+
+      - name: Run Packer Build (AWS & GCP)
+        run: |
+          packer build -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
