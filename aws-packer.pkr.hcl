@@ -19,7 +19,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source      = "/tmp/webapp.zip"  # ✅ Ensure it matches the GitHub Actions path
+    source      = "/tmp/webapp.zip" # ✅ Ensure it matches the GitHub Actions path
     destination = "/tmp/webapp.zip"
   }
 
@@ -32,13 +32,13 @@ build {
   # Ensure file exists and execute it
   provisioner "shell" {
     inline = [
-      "ls -lh /tmp/",  # ✅ Debugging: Check if webapp.zip exists
+      "ls -lh /tmp/", # ✅ Debugging: Check if webapp.zip exists
       "if [ ! -f /tmp/webapp.zip ]; then echo '❌ ERROR: webapp.zip is missing!'; exit 1; fi",
       "sudo apt-get install -y unzip",
       "sudo mkdir -p /opt/webapp",
       "sudo unzip -o /tmp/webapp.zip -d /opt/webapp",
       "sudo chmod -R 755 /opt/webapp",
-      "sudo chown -R csye6225:csye6225 /opt/webapp"
+      "sudo chown -R csye6225:csye6225 /opt/webapp",
       "sudo sed -i 's/\r$//' /tmp/setup.sh", # Convert Windows line endings
       "sudo chmod +x /tmp/setup.sh",
       "export DB_USER=${var.db_user}",
