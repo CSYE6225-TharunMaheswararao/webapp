@@ -18,6 +18,11 @@ source "amazon-ebs" "ubuntu" {
 build {
   sources = ["source.amazon-ebs.ubuntu"]
 
+  provisioner "file" {
+    source      = "/tmp/webapp.zip"  # ✅ Ensure it matches download location
+    destination = "/tmp/webapp.zip"
+  }
+
   # Upload setup.sh
   provisioner "file" {
     source      = "./app/scripts/setup.sh" # Ensure this file exists locally

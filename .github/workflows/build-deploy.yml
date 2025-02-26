@@ -107,13 +107,15 @@ jobs:
       - name: Build Application Artifact
         run: |
           mkdir -p artifacts
-          zip -r artifacts/webapp.zip app run.py requirements.txt
+          zip -r artifacts/webapp.zip app run.py requirements.txt webapp.service
+          ls -lh artifacts/  # ✅ Debugging: List the contents and size
 
       - name: Upload Application Artifact
-        uses: actions/upload-artifact@v4.3.1
+        uses: actions/upload-artifact@v4
         with:
           name: webapp-artifact
           path: artifacts/webapp.zip
+        
 
   build-packer-image:
     runs-on: ubuntu-latest
@@ -130,7 +132,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: webapp-artifact
-          path: /tmp
+          path: /tmp  # ✅ Ensure this matches the packer script
+
+      - name: Verify Artifact Exists
+        run: |
+          echo "🔍 Listing contents of /tmp/"
+          ls -lh /tmp/
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -163,4 +170,4 @@ jobs:
 
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
-          packer build -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
+          packer build -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl        
