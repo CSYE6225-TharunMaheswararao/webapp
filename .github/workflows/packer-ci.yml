@@ -22,6 +22,11 @@ jobs:
         run: |
           packer plugins install github.com/hashicorp/amazon
 
+      - name: Create Dummy `webapp.zip`
+        run: |
+          zip -r webapp.zip ./
+          ls -al
+
       - name: Run Packer Format Check
         run: |
           packer fmt -check -diff aws-packer.pkr.hcl

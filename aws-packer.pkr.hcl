@@ -19,7 +19,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source      = "/tmp/webapp.zip" # ✅ Ensure it matches the GitHub Actions path
+    source      = "./webapp.zip" # ✅ Ensure it matches the GitHub Actions path
     destination = "/tmp/webapp.zip"
   }
 
