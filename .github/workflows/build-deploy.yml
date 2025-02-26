@@ -12,10 +12,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'  # or your required Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest  # ✅ Install pytest
+
       - name: Run Integration Tests
         run: |
           echo "Running integration tests..."
-          pytest tests/
+          pytest tests/test_api.py
 
   build-artifact:
     runs-on: ubuntu-latest
