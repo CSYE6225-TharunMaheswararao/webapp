@@ -12,7 +12,7 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USERNAME: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_HOST: localhost
+      DB_HOST: 127.0.0.1
       DB_PORT: 3306
 
     steps:
@@ -22,37 +22,36 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
 
       - name: Start MySQL Container
         run: |
           docker run -d --name mysql_container \
             -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -p 3306:3306 \
-            --health-cmd="mysqladmin ping -h localhost -uroot -p${{ secrets.DB_PASSWORD }}" \
+            --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }}" \
             --health-interval=5s \
             --health-timeout=3s \
             --health-retries=5 \
             mysql:8.0
 
-      - name: Wait for MySQL to Be Ready
+      - name: Wait for MySQL to be Ready
         run: |
           for i in {1..10}; do
             STATUS=$(docker inspect --format='{{.State.Health.Status}}' mysql_container 2>/dev/null || echo "not found")
             if [ "$STATUS" == "healthy" ]; then
-              echo "✅ MySQL is healthy!"
+              echo "MySQL is healthy!"
               exit 0
             fi
-            echo "⏳ Waiting for MySQL to be ready... retry $i"
+            echo "Waiting for MySQL to be ready... retry $i"
             sleep 5
           done
-          echo "❌ MySQL did not become healthy in time."
+          echo "MySQL did not become healthy in time."
           docker logs mysql_container
           exit 1
 
@@ -60,8 +59,7 @@ jobs:
         run: |
           docker exec mysql_container mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "
             CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
-            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED WITH mysql_native_password BY '${{ secrets.DB_PASSWORD }}';
-            ALTER USER '${{ secrets.DB_USER }}'@'%' IDENTIFIED WITH mysql_native_password BY '${{ secrets.DB_PASSWORD }}';
+            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
             GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
             FLUSH PRIVILEGES;
           "
@@ -72,30 +70,18 @@ jobs:
           echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
           echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
           echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
-          echo "DB_HOST = 'localhost'" >> app/app.config
+          echo "DB_HOST = 127.0.0.1" >> app/app.config
           echo "DB_PORT = 3306" >> app/app.config
           echo "DB_CONNECTION = mysql" >> app/app.config
 
-      - name: Wait for MySQL to Accept Connections
-        run: |
-          for i in {1..10}; do
-            if docker exec mysql_container mysql -hlocalhost -uroot -p${{ secrets.DB_PASSWORD }} -e "SELECT 1;" > /dev/null 2>&1; then
-              echo "✅ MySQL is accepting connections!"
-              exit 0
-            fi
-            echo "⏳ Waiting for MySQL to accept connections... retry $i"
-            sleep 5
-          done
-          echo "❌ MySQL did not accept connections in time."
-          exit 1
-
       - name: Start Flask App (Debug Mode)
         run: |
-          echo "🚀 Starting Flask App..."
-          nohup python run.py > flask.log 2>&1 &
-          sleep 15
-          echo "🔍 Checking Flask logs..."
-          cat flask.log
+          echo "Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
+          sleep 10  # Give it time to start
+
+      - name: Check Flask Logs
+        run: cat flask.log  # Print logs in case of failure
 
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
@@ -103,13 +89,11 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
 
-      - name: Stop Services
+      - name: Stop MySQL Container
         run: |
-          echo "🛑 Stopping Flask & MySQL..."
-          pkill -f run.py || true
           docker stop mysql_container || true
           docker rm mysql_container || true
 
