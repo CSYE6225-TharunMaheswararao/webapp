@@ -6,10 +6,6 @@ variable "db_password" {
   default = "default_password"
 }
 
-variable "artifact_path" {
-  default = "/tmp/webapp.zip"
-}
-
 source "amazon-ebs" "ubuntu" {
   ami_name      = "custom-webapp-ubuntu-24"
   instance_type = "t2.micro"
@@ -23,7 +19,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source      = var.artifact_path # ✅ Ensure it matches download location
+    source      = ./webapp.zip # ✅ Ensure it matches download location
     destination = "/tmp/webapp.zip"
   }
 

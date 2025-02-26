@@ -170,4 +170,4 @@ jobs:
 
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
-          packer validate -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" -var "artifact_path=/tmp/webapp.zip" aws-packer.pkr.hcl
+          packer validate -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
