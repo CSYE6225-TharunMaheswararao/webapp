@@ -172,3 +172,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Archives and compression
+*.tgz
+*.zip
+*.tar.gz
+*.tar
+packer-manifest*
