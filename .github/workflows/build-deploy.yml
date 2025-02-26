@@ -138,6 +138,10 @@ jobs:
         run: |
           echo "🔍 Listing contents of /tmp/"
           ls -lh /tmp/
+          if [ ! -f "/tmp/webapp.zip" ]; then
+            echo "❌ ERROR: webapp.zip is missing!"
+            exit 1
+          fi
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -166,7 +170,7 @@ jobs:
 
       - name: Run Packer Validate
         run: |
-          packer validate aws-packer.pkr.hcl
+          packer validate -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
 
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
