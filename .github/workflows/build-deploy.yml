@@ -171,3 +171,16 @@ jobs:
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
           packer validate -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
+
+      - name: Extract AMI ID from Packer Manifest
+        id: extract_ami
+        run: |
+          echo "🔍 Extracting AMI ID from packer-manifest.json..."
+          cat packer-manifest.json
+          AMI_ID=$(jq -r '.builds[0].artifact_id' packer-manifest.json | cut -d':' -f2)
+          echo "🚀 AMI ID: $AMI_ID"
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+  
+      - name: Display Extracted AMI ID
+        run: |
+          echo "✅ Extracted AMI ID is: ${{ env.AMI_ID }}"
