@@ -58,16 +58,33 @@ jobs:
             FLUSH PRIVILEGES;
           "
 
-      - name: Start Flask App
+      - name: Configure Environment Variables in `app/app.config`
         run: |
-          echo "🚀 Starting Flask App..."
-          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background
+          echo "[DATABASE]" > app/app.config
+          echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
+          echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
+          echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
+          echo "DB_HOST = 127.0.0.1" >> app/app.config
+          echo "DB_PORT = 3306" >> app/app.config
+          echo "DB_CONNECTION = mysql" >> app/app.config
+
+      - name: Start Flask App (Debug Mode)
+        run: |
+          echo "Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
           sleep 10  # Give it time to start
 
-      - name: Run Integration Tests
-        run: |
-          echo "Running integration tests..."
-          pytest -v app/tests/
+      - name: Check Flask Logs
+        run: cat flask.log  # Print logs in case of failure
+  
+      - name: Run Tests
+        run: pytest -v app/tests/test_api.py
+        env:
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
 
       - name: Stop Services
         run: |
