@@ -1,4 +1,4 @@
-name: Build & Deploy Packer Image
+name: Integration Test & Build Packer Image
 
 on:
   push:
@@ -6,19 +6,90 @@ on:
       - main
 
 jobs:
-  build-artifact:
+  integration-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Start MySQL Container
+        run: |
+          docker run -d --name mysql_container \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -p 3306:3306 \
+            --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }}" \
+            --health-interval=5s \
+            --health-timeout=3s \
+            --health-retries=5 \
+            mysql:8.0
+
+      - name: Wait for MySQL to be Ready
+        run: |
+          for i in {1..10}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' mysql_container 2>/dev/null || echo "not found")
+            if [ "$STATUS" == "healthy" ]; then
+              echo "✅ MySQL is healthy!"
+              exit 0
+            fi
+            echo "⏳ Waiting for MySQL to be ready... retry $i"
+            sleep 5
+          done
+          echo "❌ MySQL did not become healthy in time."
+          docker logs mysql_container
+          exit 1
+
+      - name: Create Database and User
+        run: |
+          docker exec mysql_container mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "
+            CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
+            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+            GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
+            FLUSH PRIVILEGES;
+          "
+
+      - name: Start Flask App
+        run: |
+          echo "🚀 Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background
+          sleep 10  # Give it time to start
+
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests..."
+          pytest -v app/tests/
+
+      - name: Stop Services
+        run: |
+          echo "🛑 Stopping Flask & MySQL..."
+          pkill -f run.py || true
+          docker stop mysql_container || true
+          docker rm mysql_container || true
+
+  build-artifact:
+    runs-on: ubuntu-latest
+    needs: integration-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Build Application Artifact
         run: |
           mkdir -p artifacts
-          zip -r artifacts/webapp.zip app run.py requirements.txt webapp.service
+          zip -r artifacts/webapp.zip app run.py requirements.txt
 
       - name: Upload Application Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: webapp-artifact
           path: artifacts/webapp.zip
@@ -32,10 +103,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Application Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: webapp-artifact
           path: /tmp
@@ -53,6 +124,6 @@ jobs:
           unzip packer_1.10.1_linux_amd64.zip
           sudo mv packer /usr/local/bin/
 
-      - name: Run Packer Build
+      - name: Build Custom Image with Packer (AWS & GCP)
         run: |
           packer build -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
