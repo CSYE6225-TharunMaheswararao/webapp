@@ -23,8 +23,11 @@ sudo systemctl enable mysql
 sudo systemctl start mysql
 
 echo "🔹 Configuring MySQL authentication..."
-sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}';"
-sudo mysql -e "FLUSH PRIVILEGES;"
+sudo mysql -e "
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}';
+ALTER USER '${DB_USER}'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DB_PASSWORD}';
+FLUSH PRIVILEGES;
+"
 
 echo "🔹 Creating MySQL database and user..."
 sudo mysql -u root -p${DB_PASSWORD} -e "
