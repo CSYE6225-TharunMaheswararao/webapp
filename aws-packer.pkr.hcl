@@ -19,7 +19,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source      = ./webapp.zip # ✅ Ensure it matches download location
+    source      = "./webapp.zip"
     destination = "/tmp/webapp.zip"
   }
 
