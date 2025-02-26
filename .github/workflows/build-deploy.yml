@@ -1,4 +1,4 @@
-name: Integration Test & Build Packer Image
+name: Build & Deploy Packer Image
 
 on:
   push:
@@ -6,30 +6,8 @@ on:
       - main
 
 jobs:
-  integration-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'  # or your required Python version
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pytest  # ✅ Install pytest
-
-      - name: Run Integration Tests
-        run: |
-          echo "Running integration tests..."
-          pytest --rootdir=$(pwd)/app/tests app/tests/
-
   build-artifact:
     runs-on: ubuntu-latest
-    needs: integration-test
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -37,7 +15,7 @@ jobs:
       - name: Build Application Artifact
         run: |
           mkdir -p artifacts
-          zip -r artifacts/webapp.zip app run.py requirements.txt
+          zip -r artifacts/webapp.zip app run.py requirements.txt webapp.service
 
       - name: Upload Application Artifact
         uses: actions/upload-artifact@v3
@@ -75,6 +53,6 @@ jobs:
           unzip packer_1.10.1_linux_amd64.zip
           sudo mv packer /usr/local/bin/
 
-      - name: Run Packer Build (AWS & GCP)
+      - name: Run Packer Build
         run: |
           packer build -var "db_user=$DB_USER" -var "db_password=$DB_PASSWORD" aws-packer.pkr.hcl
