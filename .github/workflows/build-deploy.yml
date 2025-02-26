@@ -33,52 +33,49 @@ jobs:
             --health-timeout=3s \
             --health-retries=5 \
             mysql:8.0
-
+  
       - name: Wait for MySQL to be Ready
         run: |
           for i in {1..10}; do
             STATUS=$(docker inspect --format='{{.State.Health.Status}}' mysql_container 2>/dev/null || echo "not found")
             if [ "$STATUS" == "healthy" ]; then
-              echo "✅ MySQL is healthy!"
+              echo "MySQL is healthy!"
               exit 0
             fi
-            echo "⏳ Waiting for MySQL to be ready... retry $i"
+            echo "Waiting for MySQL to be ready... retry $i"
             sleep 5
           done
-          echo "❌ MySQL did not become healthy in time."
+          echo "MySQL did not become healthy in time."
           docker logs mysql_container
           exit 1
-
-      - name: Wait for MySQL to Accept Connections
+  
+      - name: Create Database and User
         run: |
-          for i in {1..10}; do
-            if docker exec mysql_container mysqladmin ping -h 127.0.0.1 -uroot -p${{ secrets.DB_PASSWORD }} --silent; then
-              echo "✅ MySQL is accessible!"
-              exit 0
-            fi
-            echo "⏳ Waiting for MySQL to accept connections... retry $i"
-            sleep 5
-          done
-          echo "❌ MySQL did not accept connections in time."
-          exit 1
-
+          docker exec mysql_container mysql -uroot -p${{ secrets.DB_PASSWORD }} -e "
+            CREATE DATABASE IF NOT EXISTS ${{ secrets.DB_NAME }};
+            CREATE USER IF NOT EXISTS '${{ secrets.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+            GRANT ALL PRIVILEGES ON ${{ secrets.DB_NAME }}.* TO '${{ secrets.DB_USER }}'@'%';
+            FLUSH PRIVILEGES;
+          "
+  
       - name: Configure Environment Variables in `app/app.config`
         run: |
           echo "[DATABASE]" > app/app.config
           echo "DB_USERNAME = '${{ secrets.DB_USER }}'" >> app/app.config
           echo "DB_PASSWORD = '${{ secrets.DB_PASSWORD }}'" >> app/app.config
           echo "DB_NAME = '${{ secrets.DB_NAME }}'" >> app/app.config
-          echo "DB_HOST = 'host.docker.internal'" >> app/app.config  # ✅ Use host.docker.internal
+          echo "DB_HOST = 127.0.0.1" >> app/app.config
           echo "DB_PORT = 3306" >> app/app.config
           echo "DB_CONNECTION = mysql" >> app/app.config
 
       - name: Start Flask App (Debug Mode)
         run: |
-          echo "🚀 Starting Flask App..."
-          nohup python run.py > flask.log 2>&1 &
-          sleep 10  # Wait for Flask to initialize
-          echo "🔍 Checking Flask logs..."
-          cat flask.log
+          echo "Starting Flask App..."
+          nohup python run.py > flask.log 2>&1 &  # Run Flask in the background and capture logs
+          sleep 10  # Give it time to start
+
+      - name: Check Flask Logs
+        run: cat flask.log  # Print logs in case of failure
 
       - name: Run Tests
         run: pytest -v app/tests/test_api.py
@@ -86,7 +83,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USERNAME: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_HOST: host.docker.internal
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
 
       - name: Stop Services
