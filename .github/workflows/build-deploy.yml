@@ -176,7 +176,7 @@ jobs:
         id: extract_ami
         run: |
           echo "🔍 Extracting AMI ID from packer-manifest.json..."
-          cat packer-manifest.json
+          touch packer-manifest.json
           AMI_ID=$(jq -r '.builds[0].artifact_id' packer-manifest.json | cut -d':' -f2)
           echo "🚀 AMI ID: $AMI_ID"
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
