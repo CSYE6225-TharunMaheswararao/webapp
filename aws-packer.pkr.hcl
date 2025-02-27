@@ -40,7 +40,7 @@ source "googlecompute" "gcp_ubuntu" {
   project_id       = var.gcp_project_id
   credentials_json = file(var.gcp_account_file)
   source_image     = "ubuntu-2404-noble-amd64-v20250214"
-  image_family     = ubuntu-2404-lts-amd64
+  image_family     = "ubuntu-2404-lts-amd64"
   machine_type     = "e2-medium"
   zone             = "us-east1-b"
   image_name       = "custom-webapp-gcp-{{timestamp}}"
