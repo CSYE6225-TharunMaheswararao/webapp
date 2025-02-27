@@ -23,29 +23,44 @@ build {
     destination = "/tmp/webapp.zip"
   }
 
-  # Upload setup.sh
   provisioner "file" {
-    source      = "./app/scripts/setup.sh" # Ensure this file exists locally
-    destination = "/tmp/setup.sh"
+    source      = "./app/scripts/create_user.sh"
+    destination = "/tmp/create_user.sh"
   }
 
-  # Ensure file exists and execute it
+  provisioner "file" {
+    source      = "./app/scripts/system_setup.sh"
+    destination = "/tmp/system_setup.sh"
+  }
+
+  provisioner "file" {
+    source      = "./app/scripts/mysql_setup.sh"
+    destination = "/tmp/mysql_setup.sh"
+  }
+
+  provisioner "file" {
+    source      = "./app/scripts/app_setup.sh"
+    destination = "/tmp/app_setup.sh"
+  }
+
+  provisioner "file" {
+    source      = "./app/scripts/systemd_setup.sh"
+    destination = "/tmp/systemd_setup.sh"
+  }
+
   provisioner "shell" {
     inline = [
-      "ls -lh /tmp/", # ✅ Debugging: Check if webapp.zip exists
-      "if [ ! -f /tmp/webapp.zip ]; then echo '❌ ERROR: webapp.zip is missing!'; exit 1; fi",
-      "sudo apt-get install -y unzip",
-      "sudo mkdir -p /opt/webapp",
-      "sudo unzip -o /tmp/webapp.zip -d /opt/webapp",
-      "sudo chmod -R 755 /opt/webapp",
-      "sudo chown -R csye6225:csye6225 /opt/webapp",
-      "sudo sed -i 's/\r$//' /tmp/setup.sh", # Convert Windows line endings
-      "sudo chmod +x /tmp/setup.sh",
+      "chmod +x /tmp/*.sh",
       "export DB_USER=${var.db_user}",
       "export DB_PASSWORD=${var.db_password}",
       "echo 'DB_USER is ' $DB_USER", # Debugging: Check if variable is set
       "echo 'DB_PASSWORD is ' $DB_PASSWORD",
-      "sudo DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/setup.sh"
+      "sudo /tmp/create_user.sh",
+      "sudo /tmp/system_setup.sh",
+      "sudo DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/mysql_setup.sh",
+      "sudo /tmp/app_setup.sh",
+      "sudo /tmp/systemd_setup.sh",
+      "sudo systemctl restart webapp.service"
     ]
   }
 }
