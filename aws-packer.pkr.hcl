@@ -24,6 +24,11 @@ build {
   }
 
   provisioner "file" {
+    source      = "./webapp.service" # Ensure this is correct
+    destination = "/tmp/webapp.service"
+  }
+
+  provisioner "file" {
     source      = "./app/scripts/create_user.sh"
     destination = "/tmp/create_user.sh"
   }
