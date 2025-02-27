@@ -13,3 +13,4 @@ echo "🔹 Enabling webapp service to start on boot..."
 sudo systemctl enable webapp.service
 
 echo "✅ Systemd service setup completed!"
+
