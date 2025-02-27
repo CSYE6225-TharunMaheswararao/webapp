@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+echo "🔹 Creating non-login system user 'csye6225'..."
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin csye6225 || echo "⚠️ User already exists"
+
+echo "🔹 Setting ownership of /opt/webapp to csye6225..."
+sudo chown -R csye6225:csye6225 /opt/webapp
+
+echo "✅ User created and ownership set successfully!"
+
 echo "🔹 Checking environment variables..."
 echo "DB_USER: ${DB_USER:-NOT SET}"
 echo "DB_PASSWORD: ${DB_PASSWORD:-NOT SET}"
