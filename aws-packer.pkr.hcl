@@ -23,7 +23,7 @@ variable "ssh_username" {
 }
 
 source "amazon-ebs" "ubuntu" {
-  ami_name      = "custom-webapp-ubuntu-24"
+  ami_name      = "custom-webapp-ubuntu-24-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
   instance_type = "t2.micro"
   region        = "us-east-1"
   source_ami    = "ami-04b4f1a9cf54c11d0" # Ensure this is the correct Ubuntu 24.04 AMI ID
@@ -39,10 +39,10 @@ source "googlecompute" "gcp_ubuntu" {
   ssh_username     = var.ssh_username
   project_id       = var.gcp_project_id
   credentials_json = file(var.gcp_account_file)
-  source_image     = "ubuntu-2404-lts"
+  source_image     = "ubuntu-os-cloud/ubuntu-2404-lts"
   machine_type     = "e2-medium"
   zone             = "us-east1-b"
-  image_name       = "custom-webapp-gcp"
+  image_name       = "custom-webapp-gcp-{{timestamp}}"
 }
 
 build {
