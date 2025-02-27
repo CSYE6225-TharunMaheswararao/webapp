@@ -178,3 +178,8 @@ cython_debug/
 *.tar.gz
 *.tar
 packer-manifest*
+
+# Packer specific - Exclude all packer variable files
+*.auto.pkrvars.hcl
+*.pkrvars*
+example.pkrvars.hcl

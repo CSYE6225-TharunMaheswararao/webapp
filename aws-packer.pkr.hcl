@@ -6,17 +6,50 @@ variable "db_password" {
   default = "default_password"
 }
 
+variable "gcp_project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "gcp_account_file" {
+  description = "GCP Service Account Key File"
+  type        = string
+}
+
+variable "ssh_username" {
+  description = "SSH username for connecting to instances"
+  type        = string
+  default     = "ubuntu"
+}
+
 source "amazon-ebs" "ubuntu" {
   ami_name      = "custom-webapp-ubuntu-24"
   instance_type = "t2.micro"
   region        = "us-east-1"
   source_ami    = "ami-04b4f1a9cf54c11d0" # Ensure this is the correct Ubuntu 24.04 AMI ID
-  ssh_username  = "ubuntu"
+  ssh_username  = var.ssh_username
   profile       = "a4githubactions"
+
+  # Extra Debugging
+  communicator = "ssh"
+  ssh_timeout  = "20m"
+}
+
+source "googlecompute" "gcp_ubuntu" {
+  ssh_username     = var.ssh_username
+  project_id       = var.gcp_project_id
+  credentials_json = file(var.gcp_account_file)
+  source_image     = "ubuntu-2404-lts"
+  machine_type     = "e2-medium"
+  zone             = "us-east1-b"
+  image_name       = "custom-webapp-gcp"
 }
 
 build {
-  sources = ["source.amazon-ebs.ubuntu"]
+  sources = [
+    "source.amazon-ebs.ubuntu",
+    "source.googlecompute.gcp_ubuntu"
+  ]
 
   provisioner "file" {
     source      = "./webapp.zip" # ✅ Ensure it matches the GitHub Actions path
