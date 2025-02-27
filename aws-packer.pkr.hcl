@@ -6,6 +6,17 @@ variable "db_password" {
   default = "default_password"
 }
 
+variable "gcp_project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "gcp_account_file" {
+  description = "GCP Service Account Key File"
+  type        = string
+  default     = "gcp-key.json"
+}
+
 source "amazon-ebs" "ubuntu" {
   ami_name      = "custom-webapp-ubuntu-24"
   instance_type = "t2.micro"
@@ -15,8 +26,20 @@ source "amazon-ebs" "ubuntu" {
   profile       = "a4githubactions"
 }
 
+source "googlecompute" "gcp_ubuntu" {
+  project_id       = var.gcp_project_id
+  account_file     = var.gcp_account_file # Using GitHub Secrets
+  source_image     = "ubuntu-2404-lts"
+  machine_type     = "e2-medium"
+  zone             = "us-east1-b"
+  image_name       = "custom-webapp-gcp"
+}
+
 build {
-  sources = ["source.amazon-ebs.ubuntu"]
+  sources = [
+    "source.amazon-ebs.ubuntu",
+    "source.googlecompute.gcp_ubuntu"
+  ]
 
   provisioner "file" {
     source      = "./webapp.zip" # ✅ Ensure it matches the GitHub Actions path

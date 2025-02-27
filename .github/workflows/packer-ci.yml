@@ -21,6 +21,18 @@ jobs:
       - name: Install Packer Plugins
         run: |
           packer plugins install github.com/hashicorp/amazon
+          packer plugins install github.com/hashicorp/googlecompute
+
+      - name: Install Google Cloud SDK
+        run: |
+          curl -sSL https://sdk.cloud.google.com | bash
+          echo "✅ Google Cloud SDK Installed"
+
+      - name: Authenticate to GCP
+        run: |
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > gcp-key.json
+          gcloud auth activate-service-account --key-file=gcp-key.json
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Create Dummy `webapp.zip`
         run: |
@@ -37,4 +49,8 @@ jobs:
 
       - name: Run Packer Validate
         run: |
-          packer validate aws-packer.pkr.hcl
+          packer validate -var "db_user=${{ secrets.DB_USER }}" \
+                          -var "db_password=${{ secrets.DB_PASSWORD }}" \
+                          -var "gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
+                          -var "gcp_account_file=gcp-key.json" \
+                          aws-gcp-packer.pkr.hcl
