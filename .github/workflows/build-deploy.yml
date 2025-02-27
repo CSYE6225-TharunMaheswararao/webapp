@@ -140,12 +140,9 @@ jobs:
           ls -lh /tmp/
           if [ ! -f "/tmp/webapp.zip" ]; then
             echo "❌ ERROR: webapp.zip is missing!"
-            zip -r webapp.zip ./
-            ls  -al
           else
             echo "✅ webapp.zip found!"
           fi
-          ls -al
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -167,6 +164,11 @@ jobs:
       - name: Run Packer Format Check
         run: |
           packer fmt -check -diff aws-packer.pkr.hcl
+
+      - name: Create Dummy `webapp.zip`
+        run: |
+          zip -r webapp.zip ./
+          ls -al
 
       - name: Run Packer init
         run: |
