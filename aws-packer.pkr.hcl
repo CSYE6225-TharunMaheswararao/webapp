@@ -25,8 +25,8 @@ source "amazon-ebs" "ubuntu" {
   profile       = "a4githubactions"
 
   # Extra Debugging
-  communicator  = "ssh"
-  ssh_timeout   = "20m"
+  communicator = "ssh"
+  ssh_timeout  = "20m"
 }
 
 source "googlecompute" "gcp_ubuntu" {
