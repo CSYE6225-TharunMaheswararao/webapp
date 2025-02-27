@@ -14,7 +14,6 @@ variable "gcp_project_id" {
 variable "gcp_account_file" {
   description = "GCP Service Account Key File"
   type        = string
-  default     = "gcp-key.json"
 }
 
 source "amazon-ebs" "ubuntu" {
@@ -28,7 +27,7 @@ source "amazon-ebs" "ubuntu" {
 
 source "googlecompute" "gcp_ubuntu" {
   project_id   = var.gcp_project_id
-  account_file = var.gcp_account_file # Using GitHub Secrets
+  credentials_json = file(var.gcp_account_file)
   source_image = "ubuntu-2404-lts"
   machine_type = "e2-medium"
   zone         = "us-east1-b"

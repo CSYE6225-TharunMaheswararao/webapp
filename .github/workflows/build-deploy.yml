@@ -189,6 +189,7 @@ jobs:
 
       - name: Run Packer Validate
         run: |
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > gcp-key.json
           packer validate -var "db_user=${{ secrets.DB_USER }}" \
                           -var "db_password=${{ secrets.DB_PASSWORD }}" \
                           -var "gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
@@ -197,6 +198,7 @@ jobs:
 
       - name: Build Custom Image with Packer (AWS & GCP)
         run: |
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > gcp-key.json
           packer build -var "db_user=${{ secrets.DB_USER }}" \
                         -var "db_password=${{ secrets.DB_PASSWORD }}" \
                         -var "gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
