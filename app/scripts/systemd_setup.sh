@@ -3,7 +3,7 @@ set -e  # Exit on error
 
 echo "🔹 Setting up systemd service for the Flask application..."
 
-sudo cp /tmp/webapp.service /etc/systemd/system/webapp.service
+sudo cp ./webapp.service /etc/systemd/system/webapp.service
 sudo chmod 644 /etc/systemd/system/webapp.service
 
 echo "🔹 Reloading systemd daemon..."
