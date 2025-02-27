@@ -23,9 +23,14 @@ source "amazon-ebs" "ubuntu" {
   source_ami    = "ami-04b4f1a9cf54c11d0" # Ensure this is the correct Ubuntu 24.04 AMI ID
   ssh_username  = "ubuntu"
   profile       = "a4githubactions"
+
+  # Extra Debugging
+  communicator  = "ssh"
+  ssh_timeout   = "20m"
 }
 
 source "googlecompute" "gcp_ubuntu" {
+  ssh_username     = "ubuntu"
   project_id       = var.gcp_project_id
   credentials_json = file(var.gcp_account_file)
   source_image     = "ubuntu-2404-lts"
