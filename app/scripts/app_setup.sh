@@ -34,7 +34,7 @@ DB_PASSWORD=${DB_PASSWORD}
 EOF
 
 echo "🔹 Setting permissions for app.config..."
-sudo chown csye6225:csye6225 /opt/webapp/app.config
-sudo chmod 600 /opt/webapp/app.config  # Restrict access for security
+sudo chown csye6225:csye6225 /opt/webapp/app/app.config
+sudo chmod 600 /opt/webapp/app/app.config  # Restrict access for security
 
 echo "✅ Application setup completed successfully!"
