@@ -26,12 +26,12 @@ source "amazon-ebs" "ubuntu" {
 }
 
 source "googlecompute" "gcp_ubuntu" {
-  project_id   = var.gcp_project_id
+  project_id       = var.gcp_project_id
   credentials_json = file(var.gcp_account_file)
-  source_image = "ubuntu-2404-lts"
-  machine_type = "e2-medium"
-  zone         = "us-east1-b"
-  image_name   = "custom-webapp-gcp"
+  source_image     = "ubuntu-2404-lts"
+  machine_type     = "e2-medium"
+  zone             = "us-east1-b"
+  image_name       = "custom-webapp-gcp"
 }
 
 build {
