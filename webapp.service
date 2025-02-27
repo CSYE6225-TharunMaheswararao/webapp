@@ -4,9 +4,11 @@ After=network.target
 
 [Service]
 User=csye6225
+Group=csye6225
 WorkingDirectory=/opt/webapp
-ExecStart=/usr/bin/python3 /opt/webapp/run.py
+ExecStart=/bin/bash -c 'source /opt/webapp/venv/bin/activate && python3 /opt/webapp/run.py'
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

@@ -22,6 +22,12 @@ variable "ssh_username" {
   default     = "ubuntu"
 }
 
+variable "db_name" {
+  description = "SSH username for connecting to instances"
+  type        = string
+  default     = "healthify"
+}
+
 source "amazon-ebs" "ubuntu" {
   ami_name      = "custom-webapp-ubuntu-24-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
   instance_type = "t2.micro"
@@ -97,7 +103,8 @@ build {
       "sudo /tmp/create_user.sh",
       "sudo /tmp/system_setup.sh",
       "sudo DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/mysql_setup.sh",
-      "sudo /tmp/app_setup.sh",
+      chmod +x /tmp/app_setup.sh
+      sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh
       "sudo /tmp/systemd_setup.sh",
       "sudo systemctl restart webapp.service"
     ]
