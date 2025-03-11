@@ -2,7 +2,9 @@ variable "db_user" {
   default = "default_user"
 }
 
-
+variable "db_password" {
+  default = "default_password"
+}
 
 variable "gcp_project_id" {
   description = "GCP Project ID"
