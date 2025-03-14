@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Packer init
         run: |
-          packer init aws-packer.pkr.hcl
+           packer init aws-packer.pkr.hcl
 
       - name: Run Packer Validate
         run: |
