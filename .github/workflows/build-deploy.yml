@@ -207,7 +207,7 @@ jobs:
                         -var "gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
                         -var "gcp_account_file=gcp-key.json" \
                         -var "ssh_username=ubuntu" \
-                        aws-packer.pkr.hcl | tee packer-output.log
+                        aws-packer.pkr.hcl | tee packer_output.log
           
           # Extract AMI ID directly from Packer output
           AMI_ID=$(grep -oP 'ami-\w{17}' packer_output.log | tail -1)
