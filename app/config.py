@@ -7,6 +7,11 @@ config = configparser.ConfigParser()
 db_path = os.path.join(os.path.dirname(__file__), 'app.config')
 config.read(db_path)
 
+session = boto3.Session()
+credentials = session.get_credentials()
+if not credentials:
+    raise Exception("AWS Credentials are missing")
+
 
 def get_config(app_config):
     keys = map(lambda x: x.upper(), list(app_config.keys()))
