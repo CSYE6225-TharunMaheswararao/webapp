@@ -220,6 +220,13 @@ jobs:
           GCP_IMAGE_ID=$(jq -r '.builds[] | select(.packer_run_uuid != null) | select(.name=="googlecompute") | .artifact_id' packer-manifest.json)
           echo "🚀 GCP Image ID: $GCP_IMAGE_ID"
           echo "GCP_IMAGE_ID=$GCP_IMAGE_ID" >> $GITHUB_ENV
+
+      # Share AMI with DEMO Account
+      - name: Share AMI with DEMO Account
+        run: |
+          aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} \
+            --launch-permission "Add=[{UserId=${{ secrets.DEMO_ACCOUNT_ID }} }]" \
+            --region us-east-1
   
       - name: Display Extracted AMI ID
         run: |

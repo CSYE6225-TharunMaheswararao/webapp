@@ -25,7 +25,6 @@ variable "ssh_username" {
 variable "db_name" {
   description = "SSH username for connecting to instances"
   type        = string
-  default     = "healthify"
 }
 
 source "amazon-ebs" "ubuntu" {
@@ -79,11 +78,6 @@ build {
   }
 
   provisioner "file" {
-    source      = "./app/scripts/mysql_setup.sh"
-    destination = "/tmp/mysql_setup.sh"
-  }
-
-  provisioner "file" {
     source      = "./app/scripts/app_setup.sh"
     destination = "/tmp/app_setup.sh"
   }
@@ -102,7 +96,6 @@ build {
       "echo 'DB_PASSWORD is ' $DB_PASSWORD",
       "sudo /tmp/create_user.sh",
       "sudo /tmp/system_setup.sh",
-      "sudo DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/mysql_setup.sh",
       "chmod +x /tmp/app_setup.sh",
       "sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh",
       "sudo /tmp/systemd_setup.sh",
