@@ -25,8 +25,3 @@ def get_db_uri():
         urllib.parse.quote_plus(database['DB_NAME'])
     )
     return db_uri
-
-# S3 Configuration
-s3_config = get_config("S3")
-S3_BUCKET = s3_config.get("S3_BUCKET", None)
-AWS_REGION = s3_config.get("AWS_REGION", "us-east-1")
