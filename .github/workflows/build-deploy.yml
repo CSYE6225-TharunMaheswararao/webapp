@@ -202,25 +202,17 @@ jobs:
         run: |
           echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > gcp-key.json
           packer build -var "db_user=${{ secrets.DB_USER }}" \
+                        -var "db_name=${{ secrets.DB_NAME }}" \
                         -var "db_password=${{ secrets.DB_PASSWORD }}" \
                         -var "gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
                         -var "gcp_account_file=gcp-key.json" \
                         -var "ssh_username=ubuntu" \
-                        aws-packer.pkr.hcl
-
-      - name: Extract AMI ID from Packer Manifest
-        id: extract_ami
-        run: |
-          echo "🔍 Extracting AMI ID from packer-manifest.json..."
-          touch packer-manifest.json
-          AMI_ID=$(jq -r '.builds[0].artifact_id' packer-manifest.json | cut -d':' -f2)
-          echo "🚀 AMI ID: $AMI_ID"
+                        aws-packer.pkr.hcl | tee packer_output.log
+          
+          # Extract AMI ID directly from Packer output
+          AMI_ID=$(grep -oP 'ami-\w{17}' packer_output.log | tail -1)
+          echo "Extracted AMI ID: $AMI_ID"
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
-
-          echo "🔍 Extracting GCP Image ID..."
-          GCP_IMAGE_ID=$(jq -r '.builds[] | select(.packer_run_uuid != null) | select(.name=="googlecompute") | .artifact_id' packer-manifest.json)
-          echo "🚀 GCP Image ID: $GCP_IMAGE_ID"
-          echo "GCP_IMAGE_ID=$GCP_IMAGE_ID" >> $GITHUB_ENV
 
       # Share AMI with DEMO Account
       - name: Share AMI with DEMO Account
@@ -232,4 +224,3 @@ jobs:
       - name: Display Extracted AMI ID
         run: |
           echo "✅ Extracted AMI ID is: ${{ env.AMI_ID }}"
-          echo "✅ GCP Image ID: ${{ env.GCP_IMAGE_ID }}"
