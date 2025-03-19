@@ -1,3 +1,4 @@
+import boto3
 import urllib.parse
 import configparser
 import os
@@ -25,3 +26,11 @@ def get_db_uri():
         urllib.parse.quote_plus(database['DB_NAME'])
     )
     return db_uri
+
+def get_ssm_param(name):
+    ssm = boto3.client('ssm', region_name="us-east-1")
+    response = ssm.get_parameter(Name=name, WithDecryption=True)
+    return response['Parameter']['Value']
+
+# Load S3 Bucket from AWS SSM
+S3_BUCKET = get_ssm_param("/webapp/s3_bucket")

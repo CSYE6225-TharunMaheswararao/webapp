@@ -1,6 +1,7 @@
 from flask import Blueprint, Flask
 from flask_cors import CORS
 from app.controllers.health_check_controller import health_checking
+from app.controllers.file_controller import file_routes
 from app.models.database import db
 from app.models import model
 from app.config import get_db_uri
@@ -25,6 +26,10 @@ with app.app_context():
 health_api_blueprint = Blueprint('health_api', __name__)    
 health_checking(health_api_blueprint)
 
+file_api_blueprint = Blueprint("file_api", __name__)
+file_routes(file_api_blueprint)
+
+app.register_blueprint(file_api_blueprint)
 app.register_blueprint(health_api_blueprint)
 
 if __name__ == '__main__':
