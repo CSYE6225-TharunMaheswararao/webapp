@@ -45,7 +45,7 @@ def file_routes(bp):
         return make_response(jsonify(result), 200)
     
     @bp.route('/v1/file/<file_id>', methods=['POST', 'HEAD', 'OPTIONS', 'PATCH', 'PUT'])
-    def method_not_allowed():
+    def fileid_method_not_allowed():
         response = make_response('', 405)  # Method Not Allowed
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
