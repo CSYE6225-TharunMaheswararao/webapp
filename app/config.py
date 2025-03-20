@@ -53,3 +53,21 @@ def get_ssm_param(name, default=None):
 
 # Load S3 Bucket from AWS SSM if available
 S3_BUCKET = get_ssm_param("/webapp/s3_bucket", "local-bucket")
+
+def get_s3_bucket():
+    """Retrieve S3 Bucket name from config file."""
+    try:
+        config_s3 = config['S3']
+        s3_bucket = config_s3.get('S3_BUCKET', None)
+        
+        if not s3_bucket:
+            print("ERROR: S3_BUCKET is missing in app.config")
+            return None
+        print(f"Loaded S3_BUCKET: {s3_bucket}")
+        return s3_bucket
+    except Exception as e:
+        print(f"ERROR: Failed to read S3_BUCKET - {e}")
+        return None
+
+# Load S3 Bucket Name
+S3_BUCKET_NAME = get_s3_bucket()

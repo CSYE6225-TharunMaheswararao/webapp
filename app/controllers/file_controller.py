@@ -17,6 +17,14 @@ def file_routes(bp):
             return make_response(jsonify({"error": error}), 500)
 
         return make_response(jsonify(file_data), 201)
+    
+    @bp.route('/v1/file', methods=['GET', 'DELETE', 'HEAD', 'OPTIONS', 'PATCH', 'PUT'])
+    def method_not_allowed():
+        response = make_response('', 405)  # Method Not Allowed
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
 
     @bp.route('/v1/file/<file_id>', methods=['GET'])
     def get_file(file_id):
@@ -35,3 +43,11 @@ def file_routes(bp):
             return make_response(jsonify({"error": error}), 404)
 
         return make_response(jsonify(result), 200)
+    
+    @bp.route('/v1/file/<file_id>', methods=['POST', 'HEAD', 'OPTIONS', 'PATCH', 'PUT'])
+    def method_not_allowed():
+        response = make_response('', 405)  # Method Not Allowed
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
