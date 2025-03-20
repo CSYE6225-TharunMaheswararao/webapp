@@ -5,10 +5,11 @@ from datetime import datetime
 import uuid
 from app.models.model import File
 from app.models.database import db
+from app.config import S3_BUCKET_NAME
 
 # Initialize S3 Client
 s3 = boto3.client("s3")
-S3_BUCKET = os.getenv("S3_BUCKET")
+S3_BUCKET = S3_BUCKET_NAME
 
 def upload_file_to_s3(file):
     """Uploads a file to S3 and stores metadata in DB."""
