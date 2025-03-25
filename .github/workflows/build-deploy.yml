@@ -3,7 +3,7 @@ name: Integration Test & Build Packer Image
 on:
   push:
     branches:
-      - main
+      - demo
 
 jobs:
   integration-test:
