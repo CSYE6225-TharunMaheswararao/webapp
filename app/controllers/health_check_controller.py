@@ -5,8 +5,11 @@ import time
 from app import logger
 
 def health_checking(bp):
+    def record_health_metrics(status_code: int, duration: float):
+        _emit_metrics(status_code, duration)
+
     @metric_scope
-    def record_health_metrics(metrics: MetricsLogger, status_code: int, duration: float):
+    def _emit_metrics(metrics: MetricsLogger, status_code: int, duration: float):
         metrics.set_namespace("WebAppMetrics")
         metrics.put_metric("HealthCheck_Call_Count", 1, "Count")
         metrics.put_metric("HealthCheck_Response_Time", duration, "Milliseconds")
