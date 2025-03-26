@@ -1,19 +1,13 @@
 from flask import request, make_response
 from app.services.health_check_service import insert_health_check
-from aws_embedded_metrics import metric_scope, MetricsLogger
+from app import logger, statsd
 import time
-from app import logger
 
 def health_checking(bp):
     def record_health_metrics(status_code: int, duration: float):
-        _emit_metrics(status_code, duration)
-
-    @metric_scope
-    def _emit_metrics(metrics: MetricsLogger, status_code: int, duration: float):
-        metrics.set_namespace("WebAppMetrics")
-        metrics.put_metric("HealthCheck_Call_Count", 1, "Count")
-        metrics.put_metric("HealthCheck_Response_Time", duration, "Milliseconds")
-        metrics.put_metric("HealthCheck_Status", status_code, "None")
+        statsd.incr("healthz.called")
+        statsd.timing("healthz.response_time", duration)
+        statsd.incr(f"healthz.status.{status_code}")
 
     @bp.route('/healthz', methods=['GET'])
     def health_check():

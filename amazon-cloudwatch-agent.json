@@ -12,6 +12,15 @@
             }
         },
         "log_stream_name": "webapp-stream"
+    },
+    "metrics": {
+        "metrics_collected": {
+            "statsd": {
+                "service_address": ":8125",
+                "metrics_collection_interval": 60
+            }
+        },
+        "namespace": "WebAppMetrics"
     }
 }
   
