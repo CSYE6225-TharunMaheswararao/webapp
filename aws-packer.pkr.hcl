@@ -112,8 +112,8 @@ build {
       "chmod +x /tmp/app_setup.sh",
       "sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh",
       "sudo /tmp/systemd_setup.sh",
-      "sudo yum update -y",
-      "sudo yum install -y amazon-cloudwatch-agent",
+      "sudo apt-get update -y",
+      "sudo apt-get install -y amazon-cloudwatch-agent",
       "sudo systemctl enable amazon-cloudwatch-agent",
       "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s",
       "sudo systemctl restart webapp.service"
