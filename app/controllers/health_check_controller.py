@@ -37,7 +37,7 @@ def health_checking(bp):
                 response = make_response('', 503)  # Service Unavailable
 
             duration = (time.time() - start_time) * 1000
-            record_health_metrics(response.status_code, duration)
+            # record_health_metrics(response.status_code, duration)
 
             # Add necessary headers
             response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
