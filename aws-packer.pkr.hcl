@@ -113,7 +113,6 @@ build {
       "sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh",
       "sudo /tmp/systemd_setup.sh",
       "sudo apt-get update -y",
-      "sudo apt install awscli",
       "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
       "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
       "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard",
