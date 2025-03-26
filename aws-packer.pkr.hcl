@@ -109,14 +109,25 @@ build {
       "echo 'DB_PASSWORD is ' $DB_PASSWORD",
       "sudo /tmp/create_user.sh",
       "sudo /tmp/system_setup.sh",
+      "echo 'Installing CloudWatch Agent dependencies...'",
+      "sudo apt-get update -y",
+      "sudo apt-get install -y libc6", # Ensure base dependencies
+      "echo 'Downloading CloudWatch Agent...'",
+      "wget https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -O /tmp/amazon-cloudwatch-agent.deb || { echo 'Download failed'; exit 1; }",
+      "ls -lh /tmp/amazon-cloudwatch-agent.deb", # Verify download
+      "echo 'Installing CloudWatch Agent...'",
+      "sudo dpkg -i /tmp/amazon-cloudwatch-agent.deb || { echo 'Fixing dependencies...'; sudo apt-get install -f -y; sudo dpkg -i /tmp/amazon-cloudwatch-agent.deb; }",
+      "rm -f /tmp/amazon-cloudwatch-agent.deb",
+      "sudo systemctl enable amazon-cloudwatch-agent || { echo 'Failed to enable CloudWatch Agent'; exit 1; }",
+      "sudo systemctl start amazon-cloudwatch-agent || { echo 'Failed to start CloudWatch Agent'; exit 1; }",      # Start the agent
+      "sudo systemctl status amazon-cloudwatch-agent || { echo 'CloudWatch Agent status check failed'; exit 1; }", # Verify it's running
+      "command -v /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl && echo 'CloudWatch Agent installed successfully' || { echo 'CloudWatch Agent binary not found'; exit 1; }",
+      # Test StatsD by sending a test metric
+      "echo 'Testing StatsD by sending a test metric...'",
+      "echo 'CSYE6225.WebApp.test.metric:1|c' | nc -u -w1 localhost 8125 || { echo 'Failed to send test metric to StatsD'; exit 1; }",
       "chmod +x /tmp/app_setup.sh",
       "sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh",
       "sudo /tmp/systemd_setup.sh",
-      "sudo apt-get update -y",
-      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
-      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
-      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard",
-      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo systemctl restart webapp.service"
     ]
   }
