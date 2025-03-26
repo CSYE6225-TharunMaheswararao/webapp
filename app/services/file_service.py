@@ -7,17 +7,11 @@ import time
 from app.models.model import File
 from app.models.database import db
 from app.config import S3_BUCKET_NAME
-from app import logger
-from aws_embedded_metrics import metric_scope
+from app import logger, statsd
 
 # Initialize S3 Client
 s3 = boto3.client("s3")
 S3_BUCKET = S3_BUCKET_NAME
-
-@metric_scope
-def record_metric(metrics, action, duration, metric_type):
-    metrics.set_namespace("WebAppMetrics")
-    metrics.put_metric(f"{action}_{metric_type}_Duration", duration, "Milliseconds")
 
 def upload_file_to_s3(file):
     """Uploads a file to S3 and stores metadata in DB."""
@@ -31,7 +25,7 @@ def upload_file_to_s3(file):
         # Upload file to S3
         s3.upload_fileobj(file, S3_BUCKET, s3_key)
         s3_duration = (time.time() - s3_start) * 1000
-        record_metric("UploadFile", s3_duration, "S3")
+        statsd.timing("upload_file.s3_duration", s3_duration)
 
         logger.info("Storing file metadata in DB")
         db_start = time.time()
@@ -45,7 +39,7 @@ def upload_file_to_s3(file):
         db.session.add(new_file)
         db.session.commit()
         db_duration = (time.time() - db_start) * 1000
-        record_metric("UploadFile", db_duration, "DB")
+        statsd.timing("upload_file.db_duration", db_duration)
 
         logger.info(f"File uploaded and saved successfully with ID {file_id}")
         return new_file.to_dict(), None
@@ -64,7 +58,7 @@ def get_file_metadata(file_id):
         db_start = time.time()
         file = File.query.get(file_id)
         db_duration = (time.time() - db_start) * 1000
-        record_metric("GetFile", db_duration, "DB")
+        statsd.timing("get_file.db_duration", db_duration)
 
         if not file:
             logger.warning(f"File not found for ID: {file_id}")
@@ -89,14 +83,14 @@ def delete_file_from_s3(file_id):
         s3_start = time.time()
         s3.delete_object(Bucket=S3_BUCKET, Key=s3_key)
         s3_duration = (time.time() - s3_start) * 1000
-        record_metric("DeleteFile", s3_duration, "S3")
+        statsd.timing("delete_file.s3_duration", s3_duration)
 
         logger.info("Deleting metadata from DB")
         db_start = time.time()
         db.session.delete(file)
         db.session.commit()
         db_duration = (time.time() - db_start) * 1000
-        record_metric("DeleteFile", db_duration, "DB")
+        statsd.timing("delete_file.db_duration", db_duration)
 
         logger.info(f"File deleted successfully: {file_id}")
         return {"message": "File deleted"}, None
