@@ -1,12 +1,12 @@
 from flask import request, make_response
 from app.services.health_check_service import insert_health_check
-from aws_embedded_metrics import metric_scope
+from aws_embedded_metrics import metric_scope, MetricsLogger
 import time
 from app import logger
 
 def health_checking(bp):
     @metric_scope
-    def record_health_metrics(metrics, status_code, duration):
+    def record_health_metrics(metrics: MetricsLogger, status_code: int, duration: float):
         metrics.set_namespace("WebAppMetrics")
         metrics.put_metric("HealthCheck_Call_Count", 1, "Count")
         metrics.put_metric("HealthCheck_Response_Time", duration, "Milliseconds")
@@ -37,7 +37,7 @@ def health_checking(bp):
                 response = make_response('', 503)  # Service Unavailable
 
             duration = (time.time() - start_time) * 1000
-            # record_health_metrics(response.status_code, duration)
+            record_health_metrics(response.status_code, duration)
 
             # Add necessary headers
             response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
