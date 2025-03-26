@@ -28,21 +28,22 @@ def health_checking(bp):
             return response
          
         # Attempt to insert a health check record
-        if insert_health_check():  # Call from the service module
-            logger.info("Health check passed")
-            response = make_response('', 200)  # OK
         else:
-            logger.error("Health check failed - service unavailable")
-            response = make_response('', 503)  # Service Unavailable
+            if insert_health_check():  # Call from the service module
+                logger.info("Health check passed")
+                response = make_response('', 200)  # OK
+            else:
+                logger.error("Health check failed - service unavailable")
+                response = make_response('', 503)  # Service Unavailable
 
-        duration = (time.time() - start_time) * 1000
-        record_health_metrics(response.status_code, duration)
+            duration = (time.time() - start_time) * 1000
+            record_health_metrics(response.status_code, duration)
 
-        # Add necessary headers
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        return response
+            # Add necessary headers
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            return response
 
     @bp.route('/healthz', methods=['POST', 'PUT', 'DELETE', 'PATCH'])
     def method_not_allowed():
