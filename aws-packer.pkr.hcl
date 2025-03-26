@@ -87,10 +87,17 @@ build {
     destination = "/tmp/systemd_setup.sh"
   }
 
+  provisioner "shell" {
+    inline = [
+      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc"
+    ]
+  }
+
   provisioner "file" {
     source      = "./amazon-cloudwatch-agent.json"
     destination = "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
   }
+
 
   provisioner "shell" {
     inline = [

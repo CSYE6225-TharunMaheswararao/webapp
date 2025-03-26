@@ -1,15 +1,12 @@
 from flask import request, jsonify, make_response
 from app.services.file_service import upload_file_to_s3, get_file_metadata, delete_file_from_s3
-from aws_embedded_metrics import metric_scope
+from app import logger, statsd  # ✅ import StatsD
 import time
-from app import logger
 
 def file_routes(bp):
-    @metric_scope
-    def record_api_metrics(metrics, route_name, duration):
-        metrics.set_namespace("WebAppMetrics")
-        metrics.put_metric(f"{route_name}_Call_Count", 1, "Count")
-        metrics.put_metric(f"{route_name}_Duration", duration, "Milliseconds")
+    def record_api_metrics(api_name: str, duration: float):
+        statsd.incr(f"{api_name}.called")
+        statsd.timing(f"{api_name}.duration", duration)
 
     @bp.route('/v1/file', methods=['POST'])
     def upload_file():
@@ -78,7 +75,7 @@ def file_routes(bp):
         return make_response(jsonify(result), 200)
     
     @bp.route('/v1/file/<file_id>', methods=['POST', 'HEAD', 'OPTIONS', 'PATCH', 'PUT'])
-    def fileid_method_not_allowed():
+    def fileid_method_not_allowed(file_id):
         logger.warning(f"Method {request.method} not allowed on /v1/file/{file_id}")
         response = make_response('', 405)  # Method Not Allowed
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
