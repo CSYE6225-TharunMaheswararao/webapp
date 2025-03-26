@@ -113,9 +113,11 @@ build {
       "sudo DB_NAME=${var.db_name} DB_USER=${var.db_user} DB_PASSWORD=${var.db_password} /tmp/app_setup.sh",
       "sudo /tmp/systemd_setup.sh",
       "sudo apt-get update -y",
-      "sudo apt-get install -y amazon-cloudwatch-agent",
-      "sudo systemctl enable amazon-cloudwatch-agent",
-      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s",
+      "sudo apt install aws-cli",
+      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo systemctl restart webapp.service"
     ]
   }
