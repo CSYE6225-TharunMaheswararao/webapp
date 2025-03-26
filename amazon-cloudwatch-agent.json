@@ -1,0 +1,26 @@
+{
+    "logs": {
+        "logs_collected": {
+            "files": {
+                "collect_list": [
+                    {
+                        "file_path": "/opt/webapp/webapp.log",
+                        "log_group_name": "webapp-logs",
+                        "log_stream_name": "{instance_id}"
+                    }
+                ]
+            }
+        },
+        "log_stream_name": "webapp-stream"
+    },
+    "metrics": {
+        "metrics_collected": {
+            "statsd": {
+                "service_address": ":8125",
+                "metrics_collection_interval": 60
+            }
+        },
+        "namespace": "WebAppMetrics"
+    }
+}
+  
