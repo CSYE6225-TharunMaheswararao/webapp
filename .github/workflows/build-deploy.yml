@@ -226,6 +226,122 @@ jobs:
           aws ec2 modify-image-attribute --image-id ${{ env.AMI_ID }} \
             --launch-permission "Add=[{UserId=${{ secrets.DEMO_ACCOUNT_ID }} }]" \
             --region us-east-1
+
+      - name: Configure AWS Credentials for Demo Account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Verify Demo Account Identity
+        run: |
+            echo "Verifying Demo account identity..."
+            aws sts get-caller-identity
+  
+      - name: Get Latest Launch Template Name
+        id: get_launch_template
+        run: |
+            echo "Listing all Launch Templates in Demo account..."
+            aws ec2 describe-launch-templates --region us-east-1
+            echo "Extracting Launch Template name..."
+            LAUNCH_TEMPLATE_NAME=$(aws ec2 describe-launch-templates \
+              --query 'LaunchTemplates[0].LaunchTemplateName' \
+              --output text --region us-east-1)
+            echo "Raw LAUNCH_TEMPLATE_NAME: '$LAUNCH_TEMPLATE_NAME'"
+            if [ -z "$LAUNCH_TEMPLATE_NAME" ]; then
+              echo "Error: No launch templates found"
+              exit 1
+            fi
+            if [[ ! "$LAUNCH_TEMPLATE_NAME" =~ ^dev-webapp-lt ]]; then
+              echo "Error: Launch template '$LAUNCH_TEMPLATE_NAME' does not start with 'dev-webapp-lt'"
+              exit 1
+            fi
+            echo "Launch Template Name: $LAUNCH_TEMPLATE_NAME"
+            echo "LAUNCH_TEMPLATE_NAME=$LAUNCH_TEMPLATE_NAME" >> $GITHUB_ENV
+  
+      - name: Verify Launch Template Before Update
+        run: |
+            echo "Current Launch Template configuration:"
+            aws ec2 describe-launch-template-versions \
+              --launch-template-name ${{ env.LAUNCH_TEMPLATE_NAME }} \
+              --versions '$Latest' \
+              --region us-east-1
+  
+      - name: Create New Launch Template Version
+        run: |
+            NEW_VERSION=$(aws ec2 create-launch-template-version \
+              --launch-template-name ${{ env.LAUNCH_TEMPLATE_NAME }} \
+              --source-version '$Latest' \
+              --launch-template-data "{\"ImageId\":\"${{ env.AMI_ID }}\"}" \
+              --region us-east-1 \
+              --query 'LaunchTemplateVersion.VersionNumber' \
+              --output text)
+            echo "New Launch Template Version: $NEW_VERSION"
+            echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+  
+      - name: Set New Version as Default
+        run: |
+            aws ec2 modify-launch-template \
+              --launch-template-name ${{ env.LAUNCH_TEMPLATE_NAME }} \
+              --default-version ${{ env.NEW_VERSION }} \
+              --region us-east-1
+  
+      - name: Verify Launch Template After Update
+        run: |
+            echo "Launch Template configuration after update:"
+            aws ec2 describe-launch-template-versions \
+              --launch-template-name ${{ env.LAUNCH_TEMPLATE_NAME }} \
+              --versions '$Latest' \
+              --region us-east-1
+  
+      - name: Verify Autoscaling Group Exists
+        run: |
+            echo "Verifying Autoscaling Group exists in Demo account..."
+            aws autoscaling describe-auto-scaling-groups \
+              --auto-scaling-group-names csye6225-asg \
+              --region us-east-1
+  
+      - name: Start Instance Refresh
+        id: start_instance_refresh
+        run: |
+            REFRESH_ID=$(aws autoscaling start-instance-refresh \
+              --auto-scaling-group-name csye6225-asg \
+              --region us-east-1 \
+              --preferences '{"MinHealthyPercentage": 50}' \
+              --query 'InstanceRefreshId' \
+              --output text)
+            echo "Instance Refresh ID: $REFRESH_ID"
+            echo "INSTANCE_REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+  
+      - name: Wait for Instance Refresh to Complete
+        run: |
+            echo "Waiting for instance refresh to complete..."
+            STATUS="InProgress"
+            TIMEOUT=900  # 15 minutes
+            START_TIME=$(date +%s)
+            while [ "$STATUS" == "InProgress" ] || [ "$STATUS" == "Pending" ]; do
+              CURRENT_TIME=$(date +%s)
+              ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+              if [ $ELAPSED_TIME -ge $TIMEOUT ]; then
+                echo "Error: Instance refresh timed out after $TIMEOUT seconds"
+                exit 1
+              fi
+              sleep 10
+              STATUS=$(aws autoscaling describe-instance-refreshes \
+                --auto-scaling-group-name csye6225-asg \
+                --instance-refresh-ids ${{ env.INSTANCE_REFRESH_ID }} \
+                --region us-east-1 \
+                --query 'InstanceRefreshes[0].Status' \
+                --output text)
+              echo "Current status: $STATUS"
+            done
+            if [ "$STATUS" == "Successful" ]; then
+              echo "Instance refresh completed successfully."
+            else
+              echo "Instance refresh failed with status: $STATUS"
+              exit 1
+            fi  
   
       - name: Display Extracted AMI ID
         run: |
