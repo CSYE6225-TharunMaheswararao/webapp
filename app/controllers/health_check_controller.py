@@ -9,7 +9,7 @@ def health_checking(bp):
         statsd.timing("healthz.response_time", duration)
         statsd.incr(f"healthz.status.{status_code}")
 
-    @bp.route('/healthz', methods=['GET'])
+    @bp.route('/cicd', methods=['GET'])
     def health_check():
         # Disallow payloads in GET requests
         logger.info("GET /healthz called")
@@ -42,9 +42,9 @@ def health_checking(bp):
             response.headers['X-Content-Type-Options'] = 'nosniff'
             return response
 
-    @bp.route('/healthz', methods=['POST', 'PUT', 'DELETE', 'PATCH'])
+    @bp.route('/cicd', methods=['POST', 'PUT', 'DELETE', 'PATCH'])
     def method_not_allowed():
-        logger.warning(f"Method {request.method} not allowed on /healthz")
+        logger.warning(f"Method {request.method} not allowed on /cicd")
         response = make_response('', 405)  # Method Not Allowed
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
