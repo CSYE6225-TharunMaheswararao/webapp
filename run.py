@@ -1,6 +1,6 @@
 from flask import Blueprint, Flask
 from flask_cors import CORS
-from app.controllers.health_check_controller import health_checking
+from app.controllers.health_check_controller import health_checking, cicd
 from app.controllers.file_controller import file_routes
 from app.models.database import db
 from app.models import model
@@ -28,6 +28,9 @@ health_checking(health_api_blueprint)
 
 file_api_blueprint = Blueprint("file_api", __name__)
 file_routes(file_api_blueprint)
+
+cicd_api_blueprint = Blueprint('cicd_api', __name__)
+cicd(cicd_api_blueprint)
 
 app.register_blueprint(file_api_blueprint)
 app.register_blueprint(health_api_blueprint)
