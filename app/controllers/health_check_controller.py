@@ -51,6 +51,12 @@ def health_checking(bp):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         return response
 
+def cicd(bp):
+    def record_health_metrics(status_code: int, duration: float):
+        statsd.incr("healthz.called")
+        statsd.timing("healthz.response_time", duration)
+        statsd.incr(f"healthz.status.{status_code}")
+
     @bp.route('/cicd', methods=['GET'])
     def health_check():
         # Disallow payloads in GET requests
