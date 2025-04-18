@@ -5,7 +5,7 @@ BASE_URL = "http://127.0.0.1:8080"
 
 def test_health_check_success():
     """Test if the /healthz endpoint returns 200 OK when no params or body are sent"""
-    response = requests.get(f"{BASE_URL}/cicd")
+    response = requests.get(f"{BASE_URL}/healthz")
     assert response.status_code == 200
 
 # def test_health_check_db_failure():
@@ -23,19 +23,19 @@ def test_health_check_success():
 
 def test_health_check_bad_request_with_query_params():
     """Test if sending query parameters in a GET request returns 400 Bad Request"""
-    response = requests.get(f"{BASE_URL}/cicd", params={"1": "hello"})
+    response = requests.get(f"{BASE_URL}/healthz", params={"1": "hello"})
     assert response.status_code == 400
 
 def test_health_check_bad_request_with_body():
     """Test if sending a body in a GET request returns 400 Bad Request"""
-    response = requests.get(f"{BASE_URL}/cicd", json={"name": "tharun"})
+    response = requests.get(f"{BASE_URL}/healthz", json={"name": "tharun"})
     print(response.status_code)
     assert response.status_code == 400
 
 def test_health_check_method_not_allowed():
     """Test that POST, PUT, DELETE, PATCH return 405 Method Not Allowed"""
     for method in ["post", "put", "delete", "patch"]:
-        response = getattr(requests, method)(f"{BASE_URL}/cicd")
+        response = getattr(requests, method)(f"{BASE_URL}/healthz")
         print(response.status_code)
         assert response.status_code == 405
 
